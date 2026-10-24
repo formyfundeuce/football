@@ -71,3 +71,22 @@ The game log shows the selected player's team result and score for each recorded
 Each week's collapsed “Below-average players” section lists that team's recorded QB/RB/WR/TE appearances below each player's average for the selected stat and average window. Last-five baselines use each player's most recent five recorded appearances in the selected season; season baselines use all appearances, including the inspected game and games before a trade. Players without a recorded appearance that week and equal-to-average results are excluded. This is a numeric stat comparison; lower interception counts are also below average.
 
 The individual Player game log is now inside “A closer look,” beneath the quarter comparison, with separate player and stat selectors. “Go deeper” is a team weekly review: choose Team A or Team B, then All stats or one specific stat. It includes every completed team game rather than only one player's appearances. Expanded details group below-average stats across all recorded QB/RB/WR/TE players, independent of the head-to-head position selection.
+
+## Key game factors
+
+Each team weekly review now highlights its largest available modeled play swing. Expand “Key game factors” for team context, plays that helped/hurt, late-game markers, and offensive leaders. Below-average players remain in a separate collapsed Supporting stats section.
+
+Team context includes turnover margin, third-down conversions, red-zone offensive TDs/trips, missed field goals/extra points, touchdowns, and explosive passes (20+ yards) and runs (10+ yards). These are derived play-by-play summaries, not a causal explanation of the result. Nullified plays and two-point attempts do not inflate those counts. Red-zone trips are drives with an offensive snap or field-goal attempt at the opponent's 20 or closer; a trip without a TD can still produce points or involve clock management.
+
+Play impact uses `home_wp_post - home_wp` from nflverse when available, otherwise offense-oriented `wpa` adjusted to the home team. The UI flips that impact for an away-team review and shows percentage points, with no individual blame claim. The snapshot retains the three largest helpful/harmful swings and up to two largest late swings, skips kneel-downs and changes smaller than 0.1 percentage point, and identifies Q4/OT plays. Valid modeled penalty swings can appear even though nullified player-stat events do not count in team totals. Offensive leaders show the selected team's passing/rushing/receiving yard leaders regardless of game outcome.
+
+Factors are dated snapshots, independent of automatically refreshed stats/schedules. Generate them using:
+
+```sh
+python scripts/update-factors.py /path/to/play_by_play_2026.csv.gz 2026
+python scripts/test-factors.py
+node scripts/build.mjs
+node scripts/test.mjs
+```
+
+Historical factor snapshots are included for 2020–2025 and follow the selected season. A newly completed game not covered by the snapshot shows an explicit missing-data message.
