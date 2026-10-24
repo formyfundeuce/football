@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {appearances,average,roster} from '../web/compare.mjs';
+const snapshot=JSON.parse(await readFile(new URL('../web/data.json',import.meta.url)));
+const data=snapshot.games,purdy=data.find(r=>r.player_display_name==='Brock Purdy').player_id;
+assert.equal(appearances(data,purdy).length,6);assert.equal(average(data,purdy,'passing_yards'),1460/6);assert.equal(appearances(data,purdy,'5').length,5);assert.equal(average(data,purdy,'passing_yards','5'),1255/5);
+assert(roster(data,'SF','QB').some(p=>p.player_display_name==='Brock Purdy'));assert(!roster(data,'KC','QB').some(p=>p.player_display_name==='Brock Purdy'));for(const p of roster(data,'SF','WR')){assert.equal(p.team,'SF');assert.equal(p.position,'WR')}
+const traded=[{player_id:'x',team:'SF',position:'QB',week:2,passing_yards:0},{player_id:'x',team:'KC',position:'QB',week:3,passing_yards:100}];assert.equal(roster(traded,'SF','QB').length,0);assert.equal(roster(traded,'KC','QB').length,1);assert.equal(average(traded,'x','passing_yards'),50);assert.equal(average([],'missing','passing_yards'),null);
+const source=await readFile(new URL('../dist/server/index.js',import.meta.url),'utf8');const mod=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));let res=await mod.default.fetch(new Request('https://test/'));assert.equal(res.status,200);const html=await res.text();assert(html.includes('id="teamA"'));assert(html.includes('id="teamB"'));assert(!html.includes('sportsbook'));
+assert.equal(mod.parseCSV('a,b\n"a,b","two""quotes"\n')[0].b,'two"quotes');assert.equal(mod.normalizeStats([{season:2025,season_type:'REG',position:'QB'}]).length,0);
+const original=globalThis.fetch;globalThis.fetch=async()=>new Response('season,season_type,position,player_id,player_display_name,team,week,passing_yards\n2026,REG,QB,x,Test,SF,1,0\n');try{res=await mod.default.fetch(new Request('https://test/api/stats'));let d=await res.json();assert.equal(d.source,'nflverse');assert.equal(d.games[0].passing_yards,0);assert.equal(d.games[0].team,'SF');globalThis.fetch=async()=>{throw Error('offline')};res=await mod.default.fetch(new Request('https://test/api/stats'));d=await res.json();assert.equal(d.source,'bundled');assert.equal(d.season,2026)}finally{globalThis.fetch=original}
+console.log('Passed: six-game season average, last five, team/position filters, traded players, zero-yard appearances, missing players, embedded team controls, CSV parsing, server fetch and snapshot fallback.');
