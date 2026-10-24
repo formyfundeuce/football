@@ -1,5 +1,5 @@
 import {readFile,mkdir,writeFile,rm} from 'node:fs/promises';
-const root=new URL('../',import.meta.url),types={'index.html':'text/html','style.css':'text/css','app.js':'text/javascript','compare.mjs':'text/javascript','schedule.mjs':'text/javascript','schedule.json':'application/json','data.json':'application/json'},assets={};
+const root=new URL('../',import.meta.url),types={'index.html':'text/html','style.css':'text/css','app.js':'text/javascript','compare.mjs':'text/javascript','quarters.mjs':'text/javascript','quarters.json':'application/json','schedule.mjs':'text/javascript','schedule.json':'application/json','data.json':'application/json'},assets={};
 for(const [name,type]of Object.entries(types))assets['/'+name]={body:await readFile(new URL('web/'+name,root),'utf8'),type:type+'; charset=utf-8'};
 const scheduleCode=await readFile(new URL('web/schedule.mjs',root),'utf8');
 const source=scheduleCode.replaceAll('export ','')+'\n'+await readFile(new URL('worker/index.js',root),'utf8');

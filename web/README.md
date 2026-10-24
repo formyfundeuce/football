@@ -38,3 +38,20 @@ Schedule source: https://raw.githubusercontent.com/nflverse/nfldata/master/data/
 The server refreshes its schedule cache every 15 minutes. If the feed fails, the timestamped bundled `web/schedule.json` is used. Kickoff times are converted from nflverse's Eastern Time to Mountain Time, handling daylight-saving changes. A blank score means no recorded final result; zero is a valid score. Matches awaiting a result are not shown as completed. Bye weeks are skipped when selecting the next game. This is a regular-season schedule, not live scoring.
 
 Past-match rows include total points scored by both teams. “Avg match total” below each team's history is the combined total divided by all completed regular-season games for that team, including earlier matches hidden in the expandable list. Games without a final score are excluded; a 0–0 result counts as zero.
+
+## Quarter-by-quarter performance
+
+Below the head-to-head averages, compare Q1–Q4 and overtime for a supported stat. The average view uses the selected season/last-five window and divides every quarter by covered appearances, including zero-stat quarters. Single-game view lets each player select a recorded game. Missing play-by-play coverage is excluded and displayed explicitly. Fantasy points are not calculated by quarter.
+
+Quarter data is a timestamped snapshot derived from nflverse play-by-play, separate from the automatically refreshed weekly stats. Update it after updating `web/schedule.json` with completed game results:
+
+```sh
+# Download the 2026 play-by-play CSV gzip from nflverse's pbp release.
+python scripts/update-quarters.py /path/to/play_by_play_2026.csv.gz
+node scripts/build.mjs
+node scripts/test.mjs
+```
+
+Source: https://github.com/nflverse/nflverse-data/releases/tag/pbp
+
+The processor excludes no-play penalties and two-point attempts, credits receiving/rushing touchdowns to the scorer, preserves negative yards, credits lateral yards, and groups any overtime periods separately. Quarter totals are checked against the bundled official weekly stats; later official corrections may differ from an older play-by-play snapshot.
