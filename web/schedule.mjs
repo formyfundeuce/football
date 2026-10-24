@@ -25,3 +25,15 @@ export function matchPoints(games){
  const finals=games.filter(completed),total=finals.reduce((sum,g)=>sum+g.homeScore+g.awayScore,0);
  return {games:finals.length,total,average:finals.length?total/finals.length:null};
 }
+export function currentWeek(games,now=new Date()){
+ const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit'}).format(now);
+ const weeks=[...new Set(games.map(g=>g.week))].sort((a,b)=>a-b);
+ const dates=weeks.map(week=>({week,dates:games.filter(g=>g.week===week).map(g=>g.date).sort()})).filter(w=>w.dates.length);
+ const addDays=(date,days)=>new Date(Date.parse(date+'T12:00:00Z')+days*86400000).toISOString().slice(0,10);
+ for(let i=0;i<dates.length;i++){
+  const start=i?addDays(dates[i-1].dates.at(-1),1):addDays(dates[i].dates[0],-2);
+  const end=dates[i].dates.at(-1);
+  if(today>=start&&today<=end)return dates[i].week;
+ }
+ return null;
+}
