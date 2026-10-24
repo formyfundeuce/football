@@ -1,4 +1,4 @@
-import {teamGames,outcome,completed,defaultWeek,DISPLAY_ZONE} from './schedule.mjs';
+import {teamGames,outcome,completed,defaultWeek,DISPLAY_ZONE,matchPoints} from './schedule.mjs';
 import {appearances,average,roster} from './compare.mjs';
 const $=id=>document.getElementById(id);
 const labels={passing_yards:'Passing yards',passing_tds:'Passing TDs',interceptions:'Interceptions',rushing_yards:'Rushing yards',rushing_tds:'Rushing TDs',receptions:'Receptions',receiving_yards:'Receiving yards',receiving_tds:'Receiving TDs',targets:'Targets',carries:'Carries',fantasy_points_ppr:'Fantasy points (PPR)'};
@@ -29,13 +29,13 @@ await Promise.all([load(),loadSchedule()]);
 
 function gameDate(g){return g.kickoff?new Intl.DateTimeFormat('en-US',{timeZone:DISPLAY_ZONE,weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'}).format(new Date(g.kickoff)):new Intl.DateTimeFormat('en-US',{timeZone:'UTC',weekday:'short',month:'short',day:'numeric'}).format(new Date(g.date+'T12:00:00Z'))+' · Time TBD'}
 function matchFor(g,team){const opponent=g.home===team?g.away:g.home;return `${g.home===team?'vs.':'at'} ${teams[opponent]||opponent}`}
-function pastRow(g,team){const r=outcome(g,team);return `<div class="past-game"><span class="result result-${r.result.toLowerCase()}">${r.result}</span><div><b>${matchFor(g,team)}</b><small>Week ${g.week} · ${gameDate(g).split(',').slice(0,2).join(',')}</small></div><strong>${r.own}–${r.other}</strong></div>`}
+function pastRow(g,team){const r=outcome(g,team);return `<div class="past-game"><span class="result result-${r.result.toLowerCase()}">${r.result}</span><div><b>${matchFor(g,team)}</b><small>Week ${g.week} · ${gameDate(g).split(',').slice(0,2).join(',')}</small></div><div class="past-score"><strong>${r.own}–${r.other}</strong><small>Total: ${r.own+r.other} pts</small></div></div>`}
 function renderSchedule(){
  for(const side of ['A','B']){
   const team=$('team'+side).value,el=$('matches'+side);
   if(!schedule){el.innerHTML=`<p class="schedule-placeholder">${scheduleError?'Schedule unavailable. Refresh to try again.':'Loading match schedule…'}</p>`;continue}
-  const {past,next,pending}=teamGames(schedule.games,team);
-  el.innerHTML=`<div class="next-match"><span class="match-caption">NEXT MATCH</span>${next?`<b>${matchFor(next,team)}</b><small>Week ${next.week} · ${gameDate(next)}</small>`:'<b>No upcoming match listed</b>'}</div>${pending.length?'<p class="pending-note">A recent game is awaiting a recorded result.</p>':''}<div class="past-heading">PAST MATCHES <span>${past.length}</span></div>${past.length?past.slice(0,3).map(g=>pastRow(g,team)).join(''):'<p class="schedule-placeholder">No completed matches recorded.</p>'}${past.length>3?`<details class="older-games"><summary>Show ${past.length-3} earlier matches</summary>${past.slice(3).map(g=>pastRow(g,team)).join('')}</details>`:''}`;
+  const {past,next,pending}=teamGames(schedule.games,team),points=matchPoints(past);
+  el.innerHTML=`<div class="next-match"><span class="match-caption">NEXT MATCH</span>${next?`<b>${matchFor(next,team)}</b><small>Week ${next.week} · ${gameDate(next)}</small>`:'<b>No upcoming match listed</b>'}</div>${pending.length?'<p class="pending-note">A recent game is awaiting a recorded result.</p>':''}<div class="past-heading">PAST MATCHES <span>${past.length}</span></div>${past.length?past.slice(0,3).map(g=>pastRow(g,team)).join(''):'<p class="schedule-placeholder">No completed matches recorded.</p>'}${past.length>3?`<details class="older-games"><summary>Show ${past.length-3} earlier matches</summary>${past.slice(3).map(g=>pastRow(g,team)).join('')}</details>`:''}<div class="match-average"><span>AVG MATCH TOTAL</span><strong>${points.average===null?'—':fmt(points.average)} <small>pts / game</small></strong><p>Both teams combined · ${points.games} completed season games</p></div>`;
  }
  if(!schedule){$('calendar').innerHTML='';return}
  const week=Number($('scheduleWeek').value),games=schedule.games.filter(g=>g.week===week).sort((a,b)=>a.date.localeCompare(b.date)||(a.kickoff||'').localeCompare(b.kickoff||''));

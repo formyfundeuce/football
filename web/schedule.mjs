@@ -21,3 +21,7 @@ export function defaultWeek(games,now=new Date()){
  const next=games.filter(g=>!completed(g)&&(g.kickoff?Date.parse(g.kickoff)>=now.getTime():g.date>=now.toISOString().slice(0,10))).sort((a,b)=>a.date.localeCompare(b.date))[0];
  return next?.week??Math.max(1,...games.map(g=>g.week));
 }
+export function matchPoints(games){
+ const finals=games.filter(completed),total=finals.reduce((sum,g)=>sum+g.homeScore+g.awayScore,0);
+ return {games:finals.length,total,average:finals.length?total/finals.length:null};
+}

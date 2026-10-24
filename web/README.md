@@ -36,3 +36,5 @@ The weekly NFL calendar highlights fixtures involving either selected team. “C
 Schedule source: https://raw.githubusercontent.com/nflverse/nfldata/master/data/games.csv
 
 The server refreshes its schedule cache every 15 minutes. If the feed fails, the timestamped bundled `web/schedule.json` is used. Kickoff times are converted from nflverse's Eastern Time to Mountain Time, handling daylight-saving changes. A blank score means no recorded final result; zero is a valid score. Matches awaiting a result are not shown as completed. Bye weeks are skipped when selecting the next game. This is a regular-season schedule, not live scoring.
+
+Past-match rows include total points scored by both teams. “Avg match total” below each team's history is the combined total divided by all completed regular-season games for that team, including earlier matches hidden in the expandable list. Games without a final score are excluded; a 0–0 result counts as zero.
