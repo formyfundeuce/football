@@ -40,9 +40,10 @@ def aggregate(rows,final_ids):
  return games,sorted(covered)
 
 if __name__=='__main__':
- schedule=json.loads((ROOT/'web/schedule.json').read_text())
+ season=int(sys.argv[2]) if len(sys.argv)>2 else 2026
+ schedule=json.loads((ROOT/('web/schedule.json' if season==2026 else f'web/history/schedule-{season}.json')).read_text())
  final_ids={g['id'] for g in schedule['games'] if g['homeScore'] is not None and g['awayScore'] is not None}
  with gzip.open(sys.argv[1],'rt',newline='') as f:games,covered=aggregate(csv.DictReader(f),final_ids)
- output={'season':2026,'fetchedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),'source':'nflverse play-by-play snapshot','metrics':METRICS,'coveredGames':covered,'players':games}
- (ROOT/'web/quarters.json').write_text(json.dumps(output,separators=(',',':')))
- print(f'Quarter snapshot: {len(covered)} completed games, {len(games)} player-game entries')
+ output={'season':season,'fetchedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),'source':'nflverse play-by-play snapshot','metrics':METRICS,'coveredGames':covered,'players':games}
+ (ROOT/('web/quarters.json' if season==2026 else f'web/history/quarters-{season}.json')).write_text(json.dumps(output,separators=(',',':')))
+ print(f'{season} quarter snapshot: {len(covered)} completed games, {len(games)} player-game entries')

@@ -55,3 +55,11 @@ node scripts/test.mjs
 Source: https://github.com/nflverse/nflverse-data/releases/tag/pbp
 
 The processor excludes no-play penalties and two-point attempts, credits receiving/rushing touchdowns to the scorer, preserves negative yards, credits lateral yards, and groups any overtime periods separately. Quarter totals are checked against the bundled official weekly stats; later official corrections may differ from an older play-by-play snapshot.
+
+## Season selection
+
+The header's Season menu supports 2020–2026 and remembers the selected year in the browser. Stats, team player lists, calendar, results, quarter comparisons, and CSV exports follow that year. Team/player choices are saved separately per season. Historical seasons use “Full season”; 2026 uses “Season to date.” Current-week highlighting applies only when the selected season's schedule contains today's date.
+
+The stats and schedule APIs accept `?season=YYYY` and reject unsupported years. Prior seasons are cached for 24 hours; current-season cache periods remain one hour for stats and 15 minutes for schedules. `web/history/` contains dated historical schedule and quarter snapshots; historical weekly stats are fetched from nflverse. A failed historical stats request shows an error instead of substituting current-season data.
+
+Rebuild a historical quarter snapshot with `python scripts/update-quarters.py /path/to/play_by_play_2025.csv.gz 2025` after updating that year's historical schedule file. Quarter snapshots can differ from later official corrections, as noted in the UI.

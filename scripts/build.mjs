@@ -1,6 +1,7 @@
-import {readFile,mkdir,writeFile,rm} from 'node:fs/promises';
+import {readFile,mkdir,writeFile,rm,readdir} from 'node:fs/promises';
 const root=new URL('../',import.meta.url),types={'index.html':'text/html','style.css':'text/css','app.js':'text/javascript','compare.mjs':'text/javascript','interactions.mjs':'text/javascript','quarters.mjs':'text/javascript','quarters.json':'application/json','schedule.mjs':'text/javascript','schedule.json':'application/json','data.json':'application/json'},assets={};
 for(const [name,type]of Object.entries(types))assets['/'+name]={body:await readFile(new URL('web/'+name,root),'utf8'),type:type+'; charset=utf-8'};
+for(const name of await readdir(new URL('web/history',root))){if(name.endsWith('.json'))assets['/history/'+name]={body:await readFile(new URL('web/history/'+name,root),'utf8'),type:'application/json; charset=utf-8'}};
 const scheduleCode=await readFile(new URL('web/schedule.mjs',root),'utf8');
 const source=scheduleCode.replaceAll('export ','')+'\n'+await readFile(new URL('worker/index.js',root),'utf8');
 await rm(new URL('dist',root),{recursive:true,force:true});await mkdir(new URL('dist/server',root),{recursive:true});await mkdir(new URL('dist/.openai',root),{recursive:true});
