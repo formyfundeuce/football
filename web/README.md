@@ -28,3 +28,11 @@ python3 -m http.server 8080 --directory web
 ```
 
 Private site: https://nfl-stat-lab-4826.satinyspice13.chatgpt.site
+
+## Match calendar and team history
+
+The weekly NFL calendar highlights fixtures involving either selected team. “Compare teams” selects that matchup's away and home teams. Each team selector has its next scheduled match and three recent completed results underneath, with earlier results expandable.
+
+Schedule source: https://raw.githubusercontent.com/nflverse/nfldata/master/data/games.csv
+
+The server refreshes its schedule cache every 15 minutes. If the feed fails, the timestamped bundled `web/schedule.json` is used. Kickoff times are converted from nflverse's Eastern Time to Mountain Time, handling daylight-saving changes. A blank score means no recorded final result; zero is a valid score. Matches awaiting a result are not shown as completed. Bye weeks are skipped when selecting the next game. This is a regular-season schedule, not live scoring.
