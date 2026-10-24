@@ -63,3 +63,9 @@ The header's Season menu supports 2020–2026 and remembers the selected year in
 The stats and schedule APIs accept `?season=YYYY` and reject unsupported years. Prior seasons are cached for 24 hours; current-season cache periods remain one hour for stats and 15 minutes for schedules. `web/history/` contains dated historical schedule and quarter snapshots; historical weekly stats are fetched from nflverse. A failed historical stats request shows an error instead of substituting current-season data.
 
 Rebuild a historical quarter snapshot with `python scripts/update-quarters.py /path/to/play_by_play_2025.csv.gz 2025` after updating that year's historical schedule file. Quarter snapshots can differ from later official corrections, as noted in the UI.
+
+## Go deeper: weekly results and below-average players
+
+The game log shows the selected player's team result and score for each recorded week, using that game's team even if the player was later traded. Missing schedule data displays a dash; games without a final score display Pending; tied games display Tie.
+
+Each week's collapsed “Below-average players” section lists that team's recorded QB/RB/WR/TE appearances below each player's average for the selected stat and average window. Last-five baselines use each player's most recent five recorded appearances in the selected season; season baselines use all appearances, including the inspected game and games before a trade. Players without a recorded appearance that week and equal-to-average results are excluded. This is a numeric stat comparison; lower interception counts are also below average.
