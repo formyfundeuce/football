@@ -98,3 +98,11 @@ At widths up to 760px, the dashboard becomes a focused mobile interface with bot
 The compact sticky comparison bar opens a native dialog through Change. Existing team/player/window controls and Refresh/Export buttons are moved into the dialog and restored when closed, preserving handlers and selection synchronization. Calendar fixtures are full-row tap targets; choosing one switches to Players → Averages. The browser remembers the mobile route separately from desktop performance-section states. Switching back above 760px restores the desktop dashboard and control placement.
 
 Mobile interactions were exercised against the full application DOM, including selection, panel close, matchup navigation and breakpoint changes. A physical iPhone/Safari visual pass is still required when that environment is available.
+
+## Multiple positions on phones
+
+The Players Change panel now supports any nonempty selection of QB, RB, WR and TE. Each enabled position has independent Team A and Team B player selectors. Defaults select the recorded player with the highest per-game passing/rushing/receiving yards for that position. Choices are saved per season and team pair and revalidated against the selected rosters whenever data or teams change.
+
+Averages, Quarters and Weekly chart display one comparison block per enabled position. Quarter and chart stats can be selected independently for each block. Quarters supports both average and single-game views, separate game selectors for each player, overtime and total. The fourth player tab is Game log, where any selected player and an appropriate stat can be chosen. The shared average window applies to all blocks.
+
+Matches and Teams no longer show the player Change bar. Selecting a calendar fixture opens the Teams game review. Selected team names in weekly matchups are highlighted in the Team A/Team B palette, with the existing purple fixture highlight retained for head-to-head games. Desktop retains its single-position dashboard controls.
