@@ -106,3 +106,9 @@ The Players Change panel now supports any nonempty selection of QB, RB, WR and T
 Averages, Quarters and Weekly chart display one comparison block per enabled position. Quarter and chart stats can be selected independently for each block. Quarters supports both average and single-game views, separate game selectors for each player, overtime and total. The fourth player tab is Game log, where any selected player and an appropriate stat can be chosen. The shared average window applies to all blocks.
 
 Matches and Teams no longer show the player Change bar. Selecting a calendar fixture opens the Teams game review. Selected team names in weekly matchups are highlighted in the Team A/Team B palette, with the existing purple fixture highlight retained for head-to-head games. Desktop retains its single-position dashboard controls.
+
+## Match-first selection and franchise palettes
+
+New sessions start on Matches with no teams selected. Team selectors include an explicit Choose a team option; only manual choices and selected fixtures are remembered using the revised selection preference keys. Tapping a fixture opens Teams → Team summary. The Summary tab is left of Game review, and the review selector displays only the team names.
+
+Every calendar team-name badge uses a franchise palette regardless of selection. Team summary panels, selectors and accents use the same palette, replacing side-based green/orange/purple calendar colors. Palette source: https://github.com/nflverse/nflverse-data/releases/download/teams/teams_colors_logos.csv . Broncos orange (`#FB4F14`) and Saints brown (`#8B6F47`) are user-requested accents. Badge text switches between white and near-black for contrast; empty selections use a neutral palette.

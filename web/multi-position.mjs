@@ -25,7 +25,7 @@ export function createMultiPositionUI({get,model,labels,onWindow,onSummary}){
  const heading=pair=>`<div class="multi-position-heading"><b>${pair.pos}</b><span>${e(model().teamA)} vs ${e(model().teamB)}</span></div>`;
  function save(){try{localStorage.setItem(scope,JSON.stringify(state))}catch{}}
  function refresh(){
-  const m=model();if(!m.data.length||!m.teamA||!m.teamB){get('multiPositionSetup').innerHTML='<p>Loading player choices…</p>';return}
+  const m=model();if(!m.data.length||!m.teamA||!m.teamB){get('multiPositionSetup').innerHTML=m.data.length?'<p>Select two teams above or choose a match from the calendar.</p>':'<p>Loading player choices…</p>';for(const id of ['multiAverages','multiQuarters','multiCharts','multiLog'])get(id).innerHTML='';onSummary(m.teamA||'Choose first team',m.teamB||'Choose second team');return}
   const key=`nfl-multi-${m.year}-${m.teamA}-${m.teamB}`;
   if(scope!==key){scope=key;state={enabled:Object.keys(POSITION_STATS),pairs:{}};try{const stored=JSON.parse(localStorage.getItem(scope));if(stored&&Array.isArray(stored.enabled)&&stored.enabled.some(p=>POSITION_STATS[p])&&stored.pairs){state={enabled:stored.enabled.filter(p=>POSITION_STATS[p]),pairs:stored.pairs}}}catch{}}
   const pairs=positionPairs(m,state);save();

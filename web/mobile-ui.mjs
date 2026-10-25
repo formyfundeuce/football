@@ -5,15 +5,15 @@ export function mobileRoute(view,tab='averages',teamTab='review'){
 }
 export function createMobileUI({get,win=window,doc=document}){
  const media=win.matchMedia('(max-width:760px)'),body=doc.body,dialog=get('mobileSelectionDialog'),dock=doc.querySelector('.player-control-dock'),calendar=get('matchCalendar'),groups=[get('playerPerformance'),get('teamPerformance')];
- let active=false,route=mobileRoute('players'),restoreGroups=[],restoreCalendar=false,moved=[];
- try{route=mobileRoute(...JSON.parse(localStorage.getItem('nfl-mobile-route')||'[]'))}catch{}
+ let active=false,route=mobileRoute('matches','averages','summary'),restoreGroups=[],restoreCalendar=false,moved=[];
+ try{const saved=JSON.parse(localStorage.getItem('nfl-mobile-route-v2'));if(Array.isArray(saved)&&saved.length)route=mobileRoute(...saved)}catch{}
  function setRoute(view,tab=route.tab,teamTab=route.teamTab,scroll=true){
   route=mobileRoute(view,tab,teamTab);body.dataset.mobileView=route.view;body.dataset.playerTab=route.tab;body.dataset.teamTab=route.teamTab;
   for(const button of doc.querySelectorAll('[data-mobile-nav]')){const selected=button.dataset.mobileNav===route.view;button.setAttribute('aria-current',selected?'page':'false')}
   for(const button of doc.querySelectorAll('button[data-player-tab]'))button.setAttribute('aria-pressed',String(button.dataset.playerTab===route.tab));
   for(const button of doc.querySelectorAll('button[data-team-tab]'))button.setAttribute('aria-pressed',String(button.dataset.teamTab===route.teamTab));
   if(active){calendar.open=true;for(const group of groups)group.open=true;if(route.view==='players'&&route.tab==='logs')get('quarterPerformance').open=true}
-  try{localStorage.setItem('nfl-mobile-route',JSON.stringify([route.view,route.tab,route.teamTab]))}catch{}
+  try{localStorage.setItem('nfl-mobile-route-v2',JSON.stringify([route.view,route.tab,route.teamTab]))}catch{}
   if(active&&scroll)win.scrollTo({top:0,behavior:'auto'});
  }
  function restoreFields(){for(const item of [...moved].reverse())item.parent.insertBefore(item.node,item.next?.parentNode===item.parent?item.next:null);moved=[];body.classList.remove('mobile-picker-open')}
@@ -34,5 +34,5 @@ export function createMobileUI({get,win=window,doc=document}){
  dialog.addEventListener('close',restoreFields);dialog.addEventListener('click',event=>{if(event.target===dialog)closePicker()});
  if(media.addEventListener)media.addEventListener('change',updateMode);else media.addListener(updateMode);
  updateMode();
- return {get isMobile(){return active},refresh(){setRoute(route.view,route.tab,route.teamTab,false)},updateSelection(a,b){get('mobileSelectionA').textContent=a;get('mobileSelectionB').textContent=b},showTeams(){if(!active)return false;setRoute('teams',route.tab,'review');return true},showPlayers(){if(!active)return false;setRoute('players','averages');return true}};
+ return {get isMobile(){return active},refresh(){setRoute(route.view,route.tab,route.teamTab,false)},updateSelection(a,b){get('mobileSelectionA').textContent=a;get('mobileSelectionB').textContent=b},showTeams(){if(!active)return false;setRoute('teams',route.tab,'summary');return true},showPlayers(){if(!active)return false;setRoute('players','averages');return true}};
 }
