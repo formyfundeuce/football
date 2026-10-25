@@ -90,3 +90,11 @@ node scripts/test.mjs
 ```
 
 Historical factor snapshots are included for 2020–2025 and follow the selected season. A newly completed game not covered by the snapshot shows an explicit missing-data message.
+
+## Compact phone navigation
+
+At widths up to 760px, the dashboard becomes a focused mobile interface with bottom navigation for Matches, Teams and Players. Players has Averages, Quarters, Game log and Weekly chart views. Teams separates Game review from Team summary. The introductory banner and duplicate player cards are hidden on phones; only the selected view is displayed.
+
+The compact sticky comparison bar opens a native dialog through Change. Existing team/player/window controls and Refresh/Export buttons are moved into the dialog and restored when closed, preserving handlers and selection synchronization. Calendar fixtures are full-row tap targets; choosing one switches to Players → Averages. The browser remembers the mobile route separately from desktop performance-section states. Switching back above 760px restores the desktop dashboard and control placement.
+
+Mobile interactions were exercised against the full application DOM, including selection, panel close, matchup navigation and breakpoint changes. A physical iPhone/Safari visual pass is still required when that environment is available.

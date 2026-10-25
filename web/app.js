@@ -1,3 +1,4 @@
+import {createMobileUI} from './mobile-ui.mjs';
 import {gameFactorsFor,offensiveLeaders,escapeHtml} from './factors.mjs';
 import {teamWeeklyReports,gameResult} from './game-log.mjs';
 import {fixtureSelection} from './team-colors.mjs';
@@ -8,6 +9,7 @@ import {appearances,average,roster} from './compare.mjs';
 const $=id=>document.getElementById(id);
 const labels={passing_yards:'Passing yards',passing_tds:'Passing TDs',interceptions:'Interceptions',rushing_yards:'Rushing yards',rushing_tds:'Rushing TDs',receptions:'Receptions',receiving_yards:'Receiving yards',receiving_tds:'Receiving TDs',targets:'Targets',carries:'Carries',fantasy_points_ppr:'Fantasy points (PPR)'};
 const stats={QB:['passing_yards','passing_tds','interceptions','rushing_yards','fantasy_points_ppr'],RB:['rushing_yards','carries','rushing_tds','receiving_yards','fantasy_points_ppr'],WR:['receiving_yards','receptions','targets','receiving_tds','fantasy_points_ppr'],TE:['receiving_yards','receptions','targets','receiving_tds','fantasy_points_ppr']};
+let mobileUI=null;
 let season=2026,loadingSeason=false;
 try{const saved=Number(localStorage.getItem('nfl-selected-season'));if(saved>=2020&&saved<=2026&&Number.isInteger(saved))season=saved}catch{}$('season').value=season;
 let data=[],players=[],current=[],meta=null,schedule=null,scheduleError=false,quarterData=null,quarterError=false,factorData=null,factorError=false;
@@ -58,6 +60,7 @@ async function load(){const year=season;const prior={position:$('position').valu
 $('refresh').onclick=()=>reloadSeason();$('season').onchange=()=>{season=Number($('season').value);try{localStorage.setItem('nfl-selected-season',String(season))}catch{}reloadSeason(true)};
 $('scheduleWeek').onchange=renderSchedule;
 $('teamLogMetric').replaceChildren(new Option('All stats','all'),...Object.entries(labels).map(([k,v])=>new Option(v,k)));
+mobileUI=createMobileUI({get:$});
 await reloadSeason();
 
 function gameDate(g){return g.kickoff?new Intl.DateTimeFormat('en-US',{timeZone:DISPLAY_ZONE,weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'}).format(new Date(g.kickoff)):new Intl.DateTimeFormat('en-US',{timeZone:'UTC',weekday:'short',month:'short',day:'numeric'}).format(new Date(g.date+'T12:00:00Z'))+' · Time TBD'}
@@ -72,8 +75,8 @@ function renderSchedule(){
  }
  if(!schedule){$('calendar').innerHTML='';return}
  const week=Number($('scheduleWeek').value),games=schedule.games.filter(g=>g.week===week).sort((a,b)=>a.date.localeCompare(b.date)||(a.kickoff||'').localeCompare(b.kickoff||''));
- $('calendar').innerHTML=games.map(g=>{const done=completed(g),selection=fixtureSelection(g,$('teamA').value,$('teamB').value);return `<article class="fixture ${selection}"><div class="fixture-time">${gameDate(g)}</div><div class="fixture-team"><span>${teams[g.away]||g.away}</span><strong>${done?g.awayScore:''}</strong></div><div class="fixture-team"><span>${teams[g.home]||g.home}<small> HOME</small></span><strong>${done?g.homeScore:''}</strong></div><div class="fixture-bottom"><span>${done?'Final':g.kickoff&&Date.parse(g.kickoff)<Date.now()?'Result pending':'Scheduled'}</span><button class="compare-match" data-away="${g.away}" data-home="${g.home}">Compare teams ↗</button></div></article>`}).join('')||'<p>No matches listed for this week.</p>';
- for(const button of $('calendar').querySelectorAll('.compare-match'))button.onclick=()=>compareMatch(button,{get:$,populate,render});
+ $('calendar').innerHTML=games.map(g=>{const done=completed(g),selection=fixtureSelection(g,$('teamA').value,$('teamB').value);return `<article class="fixture ${selection}"><div class="fixture-time">${gameDate(g)}</div><div class="fixture-team"><span>${teams[g.away]||g.away}</span><strong>${done?g.awayScore:''}</strong></div><div class="fixture-team"><span>${teams[g.home]||g.home}<small> HOME</small></span><strong>${done?g.homeScore:''}</strong></div><div class="fixture-bottom"><span>${done?'Final':g.kickoff&&Date.parse(g.kickoff)<Date.now()?'Result pending':'Scheduled'}</span><button class="compare-match" aria-label="Compare ${teams[g.away]||g.away} and ${teams[g.home]||g.home}" data-away="${g.away}" data-home="${g.home}">Compare teams ↗</button></div></article>`}).join('')||'<p>No matches listed for this week.</p>';
+ for(const button of $('calendar').querySelectorAll('.compare-match'))button.onclick=()=>compareMatch(button,{get:$,populate,render,afterCompare:()=>mobileUI?.showPlayers()});
 }
 async function loadSchedule(){const year=season;try{let d;try{const r=await fetch(`/api/schedule?season=${year}`);if(!r.ok)throw Error();d=await r.json()}catch{const r=await fetch(year===2026?'schedule.json':`history/schedule-${year}.json`);if(!r.ok)throw Error();d=await r.json();d.source='bundled'}if(year!==season)return;if(d.season!==year||!d.games?.length)throw Error();schedule=d;scheduleError=false;const previous=Number($('scheduleWeek').value),weeks=[...new Set(d.games.map(g=>g.week))].sort((a,b)=>a-b);const current=currentWeek(d.games);$('scheduleWeek').replaceChildren(...weeks.map(w=>{const option=new Option((w===current?'● ':'')+'Week '+w+(w===current?' — CURRENT WEEK':''),w);if(w===current){option.className='current-week-option';option.style.backgroundColor='#dcf580';option.style.color='#172923';option.style.fontWeight='700';}return option}));$('scheduleWeek').value=weeks.includes(previous)?previous:(current??defaultWeek(d.games));$('scheduleWeek').disabled=false;$('scheduleStatus').textContent=`${season} regular season · Kickoff times in Mountain Time · ${d.source==='bundled'?'Saved schedule snapshot':'nflverse schedule'} fetched ${new Date(d.fetchedAt).toLocaleString()} · Green highlights Team A; warm highlights Team B; purple highlights their head-to-head matchup. Schedule changes may take time to appear.`}catch{if(year!==season)return;scheduleError=true;$('scheduleStatus').textContent='Schedule could not refresh. '+(schedule?'Previously loaded schedule is shown.':'Select Refresh data to try again.')}renderSchedule();if($('playerA').value&&$('playerB').value){renderLog([$('playerA').value,$('playerB').value]);renderTeamLog()}}
 
@@ -110,6 +113,7 @@ function renderGameFactors(factors,team,week){
 }
 
 function syncStickyTeams(){
+ mobileUI?.updateSelection(...['A','B'].map(side=>{const p=player($('player'+side).value);return ($('team'+side).value||'Team '+side)+(p?' · '+p.player_display_name:'')}));
  for(const side of ['A','B']){
   const source=$('team'+side),target=$('stickyTeam'+side),signature=[...source.options].map(o=>o.value+':'+o.text).join('|');
   if(target.dataset.options!==signature){target.replaceChildren(...[...source.options].map(o=>new Option(o.text,o.value)));target.dataset.options=signature}
@@ -120,6 +124,8 @@ function syncStickyTeams(){
 
 for(const id of ['playerPerformance','teamPerformance']){
  const group=$(id);
- try{const saved=localStorage.getItem('nfl-'+id+'-open');if(saved!==null)group.open=saved==='true'}catch{}
- group.addEventListener('toggle',()=>{try{localStorage.setItem('nfl-'+id+'-open',String(group.open))}catch{}});
+ if(!mobileUI?.isMobile){try{const saved=localStorage.getItem('nfl-'+id+'-open');if(saved!==null)group.open=saved==='true'}catch{}}
+ group.addEventListener('toggle',()=>{if(mobileUI?.isMobile)return;try{localStorage.setItem('nfl-'+id+'-open',String(group.open))}catch{}});
 }
+
+mobileUI?.refresh();
