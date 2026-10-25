@@ -117,3 +117,9 @@ function syncStickyTeams(){
   target.disabled=source.disabled||!source.options.length;
  }
 }
+
+for(const id of ['playerPerformance','teamPerformance']){
+ const group=$(id);
+ try{const saved=localStorage.getItem('nfl-'+id+'-open');if(saved!==null)group.open=saved==='true'}catch{}
+ group.addEventListener('toggle',()=>{try{localStorage.setItem('nfl-'+id+'-open',String(group.open))}catch{}});
+}
