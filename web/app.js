@@ -1,3 +1,4 @@
+import {expectedMatchTotal} from './expected-total.mjs';
 import {rankedRoster} from './player-ranking.mjs';
 import {createMultiPositionUI} from './multi-position.mjs';
 import {createMobileUI} from './mobile-ui.mjs';
@@ -71,6 +72,7 @@ function gameDate(g){return g.kickoff?new Intl.DateTimeFormat('en-US',{timeZone:
 function matchFor(g,team){const opponent=g.home===team?g.away:g.home;return `${g.home===team?'vs.':'at'} ${teams[opponent]||opponent}`}
 function pastRow(g,team){const r=outcome(g,team);return `<div class="past-game"><span class="result result-${r.result.toLowerCase()}">${r.result}</span><div><b>${matchFor(g,team)}</b><small>Week ${g.week} · ${gameDate(g).split(',').slice(0,2).join(',')}</small></div><div class="past-score"><strong>${r.own}–${r.other}</strong><small>Total: ${r.own+r.other} pts</small></div></div>`}
 function renderSchedule(){
+ renderExpectedTotal();
  for(const side of ['A','B']){
   const team=$('team'+side).value,el=$('matches'+side);
   document.querySelector('.team-column.team-'+side.toLowerCase()).style.cssText=teamThemeStyle(team);$('team'+side+'Label').textContent=teams[team]||('Choose '+(side==='A'?'first':'second')+' team');
@@ -142,4 +144,11 @@ function applyPlayerPalette(){
  const a=teamTheme($('teamA').value),b=teamTheme($('teamB').value),colors=comparisonColors($('teamA').value,$('teamB').value);
  for(const el of [document.querySelector('.comparison'),document.querySelector('.mobile-selection-bar')]){el.style.setProperty('--comparison-a',colors[0]);el.style.setProperty('--comparison-b',colors[1]);el.style.setProperty('--comparison-a-tint',a.tint);el.style.setProperty('--comparison-b-tint',b.tint)}
  for(const side of ['A','B'])$('stickyTeam'+side).style.cssText=teamThemeStyle($('team'+side).value);
+}
+
+function renderExpectedTotal(){
+ const a=$('teamA').value,b=$('teamB').value,box=$('expectedTotal'),estimate=expectedMatchTotal(schedule?.games||[],a,b),wasOpen=box.querySelector('details')?.open;
+ box.style.cssText=`--estimate-a:${teamTheme(a).primary};--estimate-b:${teamTheme(b).primary}`;
+ if(!estimate){box.innerHTML=`<span class="expected-label">BASELINE EXPECTED TOTAL</span><strong class="expected-value">—</strong><p>${!a||!b?'Select both teams to see an estimate.':a===b?'Choose two different teams.':!schedule?'Loading completed game scores…':'Both teams need a completed game for an estimate.'}</p>`;return}
+ box.innerHTML=`<span class="expected-label">BASELINE EXPECTED TOTAL</span><strong class="expected-value">${fmt(estimate.total)}</strong><span class="expected-unit">combined points</span><div class="expected-split"><div><b>${escapeHtml(a)}</b><strong>${fmt(estimate.expectedA)}</strong></div><span>+</span><div><b>${escapeHtml(b)}</b><strong>${fmt(estimate.expectedB)}</strong></div></div><p>${season} · ${escapeHtml(a)}: ${estimate.a.games} games<br>${escapeHtml(b)}: ${estimate.b.games} games</p><details ${wasOpen?'open':''}><summary>How calculated</summary><p>${escapeHtml(a)}: (${fmt(estimate.a.scored)} scored + ${fmt(estimate.b.allowed)} opponent allowed) ÷ 2 = ${fmt(estimate.expectedA)}<br><br>${escapeHtml(b)}: (${fmt(estimate.b.scored)} scored + ${fmt(estimate.a.allowed)} opponent allowed) ÷ 2 = ${fmt(estimate.expectedB)}</p></details><small>Simple selected-season scoring baseline.</small>`;
 }
