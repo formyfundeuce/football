@@ -1,14 +1,14 @@
 export const MOBILE_VIEWS=['matches','teams','players'];
 export const PLAYER_TABS=['averages','quarters','chart','logs'];
 export function mobileRoute(view,tab='averages',teamTab='review'){
- return {view:MOBILE_VIEWS.includes(view)?view:'players',tab:PLAYER_TABS.includes(tab)?tab:'averages',teamTab:['summary','review'].includes(teamTab)?teamTab:'review'};
+ return {view:MOBILE_VIEWS.includes(view)?view:'players',tab:PLAYER_TABS.includes(tab)?tab:'averages',teamTab:['summary','review','predict'].includes(teamTab)?teamTab:'review'};
 }
 export function createMobileUI({get,win=window,doc=document}){
- const media=win.matchMedia('(max-width:760px)'),body=doc.body,dialog=get('mobileSelectionDialog'),dock=doc.querySelector('.player-control-dock'),calendar=get('matchCalendar'),groups=[get('playerPerformance'),get('teamPerformance')];
- let active=false,route=mobileRoute('matches','averages','summary'),restoreGroups=[],restoreCalendar=false,moved=[];
+ const media=win.matchMedia('(max-width:760px)'),body=doc.body,dialog=get('mobileSelectionDialog'),dock=doc.querySelector('.player-control-dock'),calendar=get('matchCalendar'),groups=[get('playerPerformance'),get('teamPerformance'),get('gamePredict')];
+ let active=false,route=mobileRoute('matches','averages','summary'),restoreGroups=[],restoreCalendar=false,moved=[],status='none';
  try{const saved=JSON.parse(localStorage.getItem('nfl-mobile-route-v2'));if(Array.isArray(saved)&&saved.length)route=mobileRoute(...saved)}catch{}
  function setRoute(view,tab=route.tab,teamTab=route.teamTab,scroll=true){
-  route=mobileRoute(view,tab,teamTab);body.dataset.mobileView=route.view;body.dataset.playerTab=route.tab;body.dataset.teamTab=route.teamTab;
+  route=mobileRoute(view,tab,teamTab);if(route.teamTab==='review'&&status!=='completed'||route.teamTab==='predict'&&status!=='upcoming')route.teamTab='summary';body.dataset.mobileView=route.view;body.dataset.playerTab=route.tab;body.dataset.teamTab=route.teamTab;
   for(const button of doc.querySelectorAll('[data-mobile-nav]')){const selected=button.dataset.mobileNav===route.view;button.setAttribute('aria-current',selected?'page':'false')}
   for(const button of doc.querySelectorAll('button[data-player-tab]'))button.setAttribute('aria-pressed',String(button.dataset.playerTab===route.tab));
   for(const button of doc.querySelectorAll('button[data-team-tab]'))button.setAttribute('aria-pressed',String(button.dataset.teamTab===route.teamTab));
@@ -34,5 +34,5 @@ export function createMobileUI({get,win=window,doc=document}){
  dialog.addEventListener('close',restoreFields);dialog.addEventListener('click',event=>{if(event.target===dialog)closePicker()});
  if(media.addEventListener)media.addEventListener('change',updateMode);else media.addListener(updateMode);
  updateMode();
- return {get isMobile(){return active},refresh(){setRoute(route.view,route.tab,route.teamTab,false)},updateSelection(a,b){get('mobileSelectionA').textContent=a;get('mobileSelectionB').textContent=b},showTeams(){if(!active)return false;setRoute('teams',route.tab,'summary');return true},showPlayers(){if(!active)return false;setRoute('players','averages');return true}};
+ return {get isMobile(){return active},refresh(){setRoute(route.view,route.tab,route.teamTab,false)},setMatchStatus(value){status=value;body.dataset.matchState=value;doc.querySelector('button[data-team-tab=review]').hidden=value!=='completed';doc.querySelector('button[data-team-tab=predict]').hidden=value!=='upcoming';setRoute(route.view,route.tab,route.teamTab,false)},updateSelection(a,b){get('mobileSelectionA').textContent=a;get('mobileSelectionB').textContent=b},showTeams(){if(!active)return false;setRoute('teams',route.tab,'summary');return true},showPlayers(){if(!active)return false;setRoute('players','averages');return true}};
 }

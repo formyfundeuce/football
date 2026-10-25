@@ -119,3 +119,11 @@ Team badges now use both primary and secondary franchise colors and official log
 Player-name blocks in mobile averages, quarters, weekly charts and the selected game log now use prominent identity cards: uppercase display names, side/position labels, selected-window appearance counts, a low-opacity team abbreviation watermark, and primary/secondary franchise accents. The second side uses a lighter team tint for contrast, following the desktop reference layout.
 
 The Game review selector updates the whole review's franchise theme, including weekly cards, expandable headers, factor metrics, offensive leaders and supporting tables. Win/loss and helpful/harmful colors remain semantic indicators.
+
+## Selected-game review and prediction
+
+Calendar selection now retains the exact fixture ID per season. Teams → Summary remains the first view. A selected completed fixture exposes Game review and hides Game predict; a fixture without a final result exposes Game predict and hides Game review. Manual team changes clear the selected fixture rather than showing an unrelated game's details.
+
+Game review is restricted to the selected completed game. It includes Q1–Q4/OT team scores, per-quarter turnovers/third downs/touchdowns/missed field goals/explosive plays, and up to two retained modeled key plays per period, followed by the full-game factor review and supporting stats for the selected team. Quarter scoring is reconstructed from post-play cumulative scores and shown only when it reconciles with the schedule's final score. Factor snapshots for all supported seasons include this period data. A completed-game Summary displays the actual final total instead of a prediction.
+
+Game predict uses only completed selected-season games dated strictly before the fixture, never later season results. It shows each team's expected points and the combined scoring baseline, prior scoring/points-allowed averages and sample counts, the last three eligible results, and shared-opponent scoring context. The baseline is the same scored/allowed averaging formula; recent/shared-opponent information is context and does not add untested model adjustments. It is not a calibrated probability forecast and does not account for injuries/weather. Quarter snapshots and model-derived events retain their dated-data limitations.

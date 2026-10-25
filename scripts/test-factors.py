@@ -16,4 +16,7 @@ class FactorsTest(unittest.TestCase):
  def test_no_model_and_incomplete_games(self):
   row={'game_id':'g','season_type':'REG','home_team':'H','away_team':'A','posteam':'H','week':'1','qtr':'1','play_type':'run','desc':'Run','rushing_yards':'15'}
   self.assertEqual(aggregate([row],set()),{});g=aggregate([row],{'g'})['g'];self.assertEqual(g['plays'],[]);self.assertEqual(g['teams']['H']['explosiveRuns'],1)
+ def test_quarter_scores_and_overtime(self):
+  rows=[{'game_id':'g','season_type':'REG','home_team':'H','away_team':'A','week':'1','qtr':str(q),'total_home_score':str(h),'total_away_score':str(a)} for q,h,a in [(1,7,0),(2,7,3),(3,10,3),(4,10,10),(5,13,10)]]
+  game=aggregate(rows,{'g'})['g'];self.assertTrue(game['quarterScoresValid']);self.assertEqual([p['homePoints'] for p in game['periods'].values()],[7,0,3,0,3]);self.assertEqual([p['awayPoints'] for p in game['periods'].values()],[0,3,0,7,0])
 if __name__=='__main__':unittest.main()

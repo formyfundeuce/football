@@ -30,7 +30,14 @@ def aggregate_factors(rows,finals):
   if gid not in finals or r.get('season_type')!='REG':continue
   home=r.get('home_team');away=r.get('away_team')
   if not home or not away:continue
-  g=games.setdefault(gid,{'home':home,'away':away,'week':int(num(r.get('week'),0)),'teams':{home:fresh(),away:fresh()},'plays':[]})
+  g=games.setdefault(gid,{'home':home,'away':away,'week':int(num(r.get('week'),0)),'teams':{home:fresh(),away:fresh()},'plays':[],'periods':{}})
+  period=str(min(5,int(num(r.get('qtr'),0))))
+  if period!='0':
+   q=g['periods'].setdefault(period,{'teams':{home:fresh(),away:fresh()},'homeCumulative':None,'awayCumulative':None,'plays':[]})
+   hs=num(r.get('total_home_score'));aws=num(r.get('total_away_score'))
+   if hs is not None:q['homeCumulative']=int(hs)
+   if aws is not None:q['awayCumulative']=int(aws)
+  previous={team:dict(values) for team,values in g['teams'].items()}
   post=r.get('posteam');valid=r.get('play_type')!='no_play';two=bool(num(r.get('two_point_attempt'),0))
   if valid and not two and post in g['teams']:
    team=g['teams'][post]
@@ -56,6 +63,9 @@ def aggregate_factors(rows,finals):
     d=drives.setdefault((gid,drive,post),{'inside':False,'td':False})
     yard=num(r.get('yardline_100'));d['inside']=d['inside'] or (yard is not None and yard<=20)
     d['td']=d['td'] or bool(num(r.get('pass_touchdown'),0) or num(r.get('rush_touchdown'),0))
+  if period!='0':
+   for code in [home,away]:
+    for metric,value in g['teams'][code].items():q['teams'][code][metric]+=value-previous[code][metric]
   before=num(r.get('home_wp'));after=num(r.get('home_wp_post'));wpa=num(r.get('wpa'))
   impact=after-before if before is not None and after is not None else (wpa*(1 if post==home else -1) if wpa is not None and post in [home,away] else None)
   play_type=r.get('play_type');desc=r.get('desc','').strip();quarter=int(num(r.get('qtr'),0))
@@ -66,7 +76,15 @@ def aggregate_factors(rows,finals):
    games[gid]['teams'][post]['redZoneTrips']+=1
    games[gid]['teams'][post]['redZoneTDs']+=int(d['td'])
  for g in games.values():
-  plays=g['plays'];positive=sorted((p for p in plays if p['homeImpact']>0),key=lambda p:-p['homeImpact'])[:3];negative=sorted((p for p in plays if p['homeImpact']<0),key=lambda p:p['homeImpact'])[:3];late=sorted((p for p in plays if p['late']),key=lambda p:-abs(p['homeImpact']))[:2]
+  plays=g['plays'];homePrevious=awayPrevious=0
+  for period,q in sorted(g['periods'].items(),key=lambda item:int(item[0])):
+   q['homePoints']=q['homeCumulative']-homePrevious if q['homeCumulative'] is not None else None
+   q['awayPoints']=q['awayCumulative']-awayPrevious if q['awayCumulative'] is not None else None
+   if q['homeCumulative'] is not None:homePrevious=q['homeCumulative']
+   if q['awayCumulative'] is not None:awayPrevious=q['awayCumulative']
+   q['plays']=sorted((p for p in plays if str(min(p['quarter'],5))==period),key=lambda p:-abs(p['homeImpact']))[:2]
+  g['quarterScoresValid']=all(str(q) in g['periods'] for q in range(1,5)) and all(q['homePoints'] is not None and q['awayPoints'] is not None and q['homePoints']>=0 and q['awayPoints']>=0 for q in g['periods'].values())
+  positive=sorted((p for p in plays if p['homeImpact']>0),key=lambda p:-p['homeImpact'])[:3];negative=sorted((p for p in plays if p['homeImpact']<0),key=lambda p:p['homeImpact'])[:3];late=sorted((p for p in plays if p['late']),key=lambda p:-abs(p['homeImpact']))[:2]
   picked={p['id']:p for p in positive+negative+late};g['plays']=sorted(picked.values(),key=lambda p:-abs(p['homeImpact']))
  return games
 
@@ -75,6 +93,10 @@ if __name__=='__main__':
  path=ROOT/('web/schedule.json' if season==2026 else f'web/history/schedule-{season}.json')
  schedule=json.loads(path.read_text());finals={g['id'] for g in schedule['games'] if g['homeScore'] is not None and g['awayScore'] is not None}
  with gzip.open(sys.argv[1],'rt',newline='') as f:games=aggregate_factors(csv.DictReader(f),finals)
+ scoreMap={g['id']:g for g in schedule['games']}
+ for gid,g in games.items():
+  final=scoreMap[gid]
+  if sum(q['homePoints'] or 0 for q in g['periods'].values())!=final['homeScore'] or sum(q['awayPoints'] or 0 for q in g['periods'].values())!=final['awayScore']:g['quarterScoresValid']=False
  output={'season':season,'fetchedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),'source':'nflverse play-by-play snapshot','games':games}
  target=ROOT/('web/factors.json' if season==2026 else f'web/history/factors-{season}.json');target.write_text(json.dumps(output,separators=(',',':')))
  print(f'{season}: factors for {len(games)} completed games',flush=True)
