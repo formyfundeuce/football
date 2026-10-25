@@ -1,10 +1,10 @@
 export const MOBILE_VIEWS=['matches','teams','players'];
 export const PLAYER_TABS=['averages','quarters','chart','logs'];
 export function mobileRoute(view,tab='averages',teamTab='review'){
- return {view:MOBILE_VIEWS.includes(view)?view:'players',tab:PLAYER_TABS.includes(tab)?tab:'averages',teamTab:['summary','review','predict'].includes(teamTab)?teamTab:'review'};
+ return {view:MOBILE_VIEWS.includes(view)?view:'players',tab:PLAYER_TABS.includes(tab)?tab:'averages',teamTab:['summary','review','predict','history'].includes(teamTab)?teamTab:'review'};
 }
 export function createMobileUI({get,win=window,doc=document}){
- const media=win.matchMedia('(max-width:760px)'),body=doc.body,dialog=get('mobileSelectionDialog'),dock=doc.querySelector('.player-control-dock'),calendar=get('matchCalendar'),groups=[get('playerPerformance'),get('teamPerformance'),get('gamePredict')];
+ const media=win.matchMedia('(max-width:760px)'),body=doc.body,dialog=get('mobileSelectionDialog'),dock=doc.querySelector('.player-control-dock'),calendar=get('matchCalendar'),groups=[get('playerPerformance'),get('teamPerformance'),get('gamePredict'),get('teamHistory')];
  let active=false,route=mobileRoute('matches','averages','summary'),restoreGroups=[],restoreCalendar=false,moved=[],status='none';
  try{const saved=JSON.parse(localStorage.getItem('nfl-mobile-route-v2'));if(Array.isArray(saved)&&saved.length)route=mobileRoute(...saved)}catch{}
  function setRoute(view,tab=route.tab,teamTab=route.teamTab,scroll=true){
