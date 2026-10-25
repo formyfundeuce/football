@@ -101,7 +101,7 @@ Mobile interactions were exercised against the full application DOM, including s
 
 ## Multiple positions on phones
 
-The Players Change panel now supports any nonempty selection of QB, RB, WR and TE. Each enabled position has independent Team A and Team B player selectors. Defaults select the recorded player with the highest per-game passing/rushing/receiving yards for that position. Choices are saved per season and team pair and revalidated against the selected rosters whenever data or teams change.
+The Players Change panel now supports any nonempty selection of QB, RB, WR and TE. Each enabled position has independent Team A and Team B player selectors. Defaults use the leading season producer: QB passing yards, RB rushing plus receiving yards, and WR/TE receiving yards. Touchdowns break yardage ties; QB interception totals and appearances are further tie-breakers. Manual player choices are preserved. Choices are saved per season and team pair and revalidated against the selected rosters whenever data or teams change.
 
 Averages, Quarters and Weekly chart display one comparison block per enabled position. Quarter and chart stats can be selected independently for each block. Quarters supports both average and single-game views, separate game selectors for each player, overtime and total. The fourth player tab is Game log, where any selected player and an appropriate stat can be chosen. The shared average window applies to all blocks.
 
@@ -112,3 +112,6 @@ Matches and Teams no longer show the player Change bar. Selecting a calendar fix
 New sessions start on Matches with no teams selected. Team selectors include an explicit Choose a team option; only manual choices and selected fixtures are remembered using the revised selection preference keys. Tapping a fixture opens Teams → Team summary. The Summary tab is left of Game review, and the review selector displays only the team names.
 
 Every calendar team-name badge uses a franchise palette regardless of selection. Team summary panels, selectors and accents use the same palette, replacing side-based green/orange/purple calendar colors. Palette source: https://github.com/nflverse/nflverse-data/releases/download/teams/teams_colors_logos.csv . Broncos orange (`#FB4F14`) and Saints brown (`#8B6F47`) are user-requested accents. Badge text switches between white and near-black for contrast; empty selections use a neutral palette.
+
+
+Team badges now use both primary and secondary franchise colors and official logo/emblem URLs from nflverse's team metadata (ESPN-hosted images). If an image fails, the team abbreviation is shown. Player names/cards, average bars, quarter cards and weekly chart series use those palettes too. When both teams share a primary color, the second team's secondary color distinguishes the chart series. Updated mobile selection preferences track manual overrides separately from automatic defaults, so subsequent data refreshes can update automatic leaders without replacing manual choices.
