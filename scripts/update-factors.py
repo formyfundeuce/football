@@ -23,6 +23,17 @@ def category(r,valid):
  if r.get('field_goal_result')=='made':return 'Field goal'
  return 'Play'
 
+def primary_event(r):
+ if r.get('play_type')=='no_play' or num(r.get('two_point_attempt'),0):return None
+ td=bool(num(r.get('touchdown'),0));turnover='Interception' if num(r.get('interception'),0) else 'Fumble lost' if num(r.get('fumble_lost'),0) else ''
+ if td:result=(turnover+' → ' if turnover else '')+'Touchdown';team=r.get('td_team') or r.get('posteam');actor=r.get('td_player_name') or ''
+ elif r.get('field_goal_result') in ['made','missed','blocked']:result='Field goal '+r['field_goal_result'];team=r.get('posteam');actor=r.get('kicker_player_name') or ''
+ elif turnover:result=turnover;team=r.get('fumbled_1_team') if turnover=='Fumble lost' and r.get('fumbled_1_team') else r.get('posteam');actor=''
+ elif num(r.get('punt_attempt'),0) or r.get('play_type')=='punt':result='Punt';team=r.get('posteam');actor=r.get('punter_player_name') or ''
+ elif num(r.get('fourth_down_failed'),0):result='Turnover on downs';team=r.get('posteam');actor=''
+ else:return None
+ return {'id':r.get('play_id') or '', 'clock':r.get('time') or '', 'team':team or '', 'result':result, 'actor':actor,'order':num(r.get('play_id'),0)}
+
 def aggregate_factors(rows,finals):
  games={};drives={}
  for r in rows:
@@ -33,11 +44,12 @@ def aggregate_factors(rows,finals):
   g=games.setdefault(gid,{'home':home,'away':away,'week':int(num(r.get('week'),0)),'teams':{home:fresh(),away:fresh()},'plays':[],'periods':{}})
   period=str(min(5,int(num(r.get('qtr'),0))))
   if period!='0':
-   q=g['periods'].setdefault(period,{'teams':{home:fresh(),away:fresh()},'homeCumulative':None,'awayCumulative':None,'plays':[]})
+   q=g['periods'].setdefault(period,{'homeCumulative':None,'awayCumulative':None,'events':[]})
    hs=num(r.get('total_home_score'));aws=num(r.get('total_away_score'))
    if hs is not None:q['homeCumulative']=int(hs)
    if aws is not None:q['awayCumulative']=int(aws)
-  previous={team:dict(values) for team,values in g['teams'].items()}
+  event=primary_event(r)
+  if period!='0' and event:q['events'].append(event)
   post=r.get('posteam');valid=r.get('play_type')!='no_play';two=bool(num(r.get('two_point_attempt'),0))
   if valid and not two and post in g['teams']:
    team=g['teams'][post]
@@ -63,9 +75,6 @@ def aggregate_factors(rows,finals):
     d=drives.setdefault((gid,drive,post),{'inside':False,'td':False})
     yard=num(r.get('yardline_100'));d['inside']=d['inside'] or (yard is not None and yard<=20)
     d['td']=d['td'] or bool(num(r.get('pass_touchdown'),0) or num(r.get('rush_touchdown'),0))
-  if period!='0':
-   for code in [home,away]:
-    for metric,value in g['teams'][code].items():q['teams'][code][metric]+=value-previous[code][metric]
   before=num(r.get('home_wp'));after=num(r.get('home_wp_post'));wpa=num(r.get('wpa'))
   impact=after-before if before is not None and after is not None else (wpa*(1 if post==home else -1) if wpa is not None and post in [home,away] else None)
   play_type=r.get('play_type');desc=r.get('desc','').strip();quarter=int(num(r.get('qtr'),0))
@@ -82,7 +91,7 @@ def aggregate_factors(rows,finals):
    q['awayPoints']=q['awayCumulative']-awayPrevious if q['awayCumulative'] is not None else None
    if q['homeCumulative'] is not None:homePrevious=q['homeCumulative']
    if q['awayCumulative'] is not None:awayPrevious=q['awayCumulative']
-   q['plays']=sorted((p for p in plays if str(min(p['quarter'],5))==period),key=lambda p:-abs(p['homeImpact']))[:2]
+   q['events']=sorted(q['events'],key=lambda event:event['order'])
   g['quarterScoresValid']=all(str(q) in g['periods'] for q in range(1,5)) and all(q['homePoints'] is not None and q['awayPoints'] is not None and q['homePoints']>=0 and q['awayPoints']>=0 for q in g['periods'].values())
   positive=sorted((p for p in plays if p['homeImpact']>0),key=lambda p:-p['homeImpact'])[:3];negative=sorted((p for p in plays if p['homeImpact']<0),key=lambda p:p['homeImpact'])[:3];late=sorted((p for p in plays if p['late']),key=lambda p:-abs(p['homeImpact']))[:2]
   picked={p['id']:p for p in positive+negative+late};g['plays']=sorted(picked.values(),key=lambda p:-abs(p['homeImpact']))

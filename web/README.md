@@ -133,3 +133,10 @@ Game predict uses only completed selected-season games dated strictly before the
 Teams includes an always-available Team form tab, alongside Summary and the conditional Game review/Game predict view. It restores the full selected-season weekly review independently of the selected fixture, with franchise-themed season record, scoring/points-allowed averages, last-five scoring averages and an oldest-to-newest recent-results strip. Team, stat and result selectors support comparing either side and narrowing the history to wins, losses or ties.
 
 Every completed week can expand into the original game factors and supporting below-average player stats, retaining the minimum-five shortfall filter and descending shortfall order. The selected completed game's Game review remains restricted to that fixture; the shared renderer keeps its data and controls separate from the full Team form history. All-season history is descriptive and can include games after a historical fixture; Game predict continues to enforce its own strict pre-match cutoff.
+
+
+## Simplified quarter timeline and history controls
+
+Game review now contains only the selected game's quarter scoreboard and expandable chronological timelines. Each period lists every recorded touchdown, interception, lost fumble, turnover on downs, field-goal result and punt with the source clock remaining and team, plus an actor where available. These events do not depend on win-probability model availability or ranking. Nullified plays, ordinary plays, extra points and two-point attempts are omitted. The Selected game factors panel and the per-quarter aggregate/model-play summaries were removed; full-game factors remain in Team form.
+
+Team form & history now has only its team selector. Stat and Result controls were removed; the full history always includes every completed result and all supported stats meeting the minimum-five shortfall threshold.

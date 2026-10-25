@@ -19,4 +19,9 @@ class FactorsTest(unittest.TestCase):
  def test_quarter_scores_and_overtime(self):
   rows=[{'game_id':'g','season_type':'REG','home_team':'H','away_team':'A','week':'1','qtr':str(q),'total_home_score':str(h),'total_away_score':str(a)} for q,h,a in [(1,7,0),(2,7,3),(3,10,3),(4,10,10),(5,13,10)]]
   game=aggregate(rows,{'g'})['g'];self.assertTrue(game['quarterScoresValid']);self.assertEqual([p['homePoints'] for p in game['periods'].values()],[7,0,3,0,3]);self.assertEqual([p['awayPoints'] for p in game['periods'].values()],[0,3,0,7,0])
+ def test_primary_timeline_without_model(self):
+  base={'game_id':'g','season_type':'REG','home_team':'H','away_team':'A','posteam':'H','week':'1','qtr':'1','time':'14:00','play_type':'punt','play_id':'10','punt_attempt':'1'}
+  rows=[base,{**base,'play_id':'20','time':'13:20','play_type':'pass','punt_attempt':'0','touchdown':'1','td_team':'H','td_player_name':'Scorer'}, {**base,'play_id':'30','time':'10:10','play_type':'field_goal','field_goal_result':'made','punt_attempt':'0'}, {**base,'play_id':'40','time':'05:00','play_type':'pass','interception':'1','punt_attempt':'0'}, {**base,'play_id':'50','play_type':'no_play'}, {**base,'play_id':'60','play_type':'run','punt_attempt':'0'}]
+  events=aggregate(rows,{'g'})['g']['periods']['1']['events']
+  self.assertEqual([e['result'] for e in events],['Punt','Touchdown','Field goal made','Interception']);self.assertEqual([e['clock'] for e in events],['14:00','13:20','10:10','05:00']);self.assertEqual(events[1]['actor'],'Scorer')
 if __name__=='__main__':unittest.main()
