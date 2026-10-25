@@ -12,7 +12,7 @@ export function createMobileUI({get,win=window,doc=document}){
   for(const button of doc.querySelectorAll('[data-mobile-nav]')){const selected=button.dataset.mobileNav===route.view;button.setAttribute('aria-current',selected?'page':'false')}
   for(const button of doc.querySelectorAll('[data-player-tab]'))button.setAttribute('aria-pressed',String(button.dataset.playerTab===route.tab));
   for(const button of doc.querySelectorAll('[data-team-tab]'))button.setAttribute('aria-pressed',String(button.dataset.teamTab===route.teamTab));
-  if(active){calendar.open=true;for(const group of groups)group.open=true}
+  if(active){calendar.open=true;for(const group of groups)group.open=true;if(route.view==='players'&&route.tab==='logs')get('quarterPerformance').open=true}
   try{localStorage.setItem('nfl-mobile-route',JSON.stringify([route.view,route.tab,route.teamTab]))}catch{}
   if(active&&scroll)win.scrollTo({top:0,behavior:'auto'});
  }
