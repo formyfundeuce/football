@@ -115,3 +115,7 @@ Every calendar team-name badge uses a franchise palette regardless of selection.
 
 
 Team badges now use both primary and secondary franchise colors and official logo/emblem URLs from nflverse's team metadata (ESPN-hosted images). If an image fails, the team abbreviation is shown. Player names/cards, average bars, quarter cards and weekly chart series use those palettes too. When both teams share a primary color, the second team's secondary color distinguishes the chart series. Updated mobile selection preferences track manual overrides separately from automatic defaults, so subsequent data refreshes can update automatic leaders without replacing manual choices.
+
+Player-name blocks in mobile averages, quarters, weekly charts and the selected game log now use prominent identity cards: uppercase display names, side/position labels, selected-window appearance counts, a low-opacity team abbreviation watermark, and primary/secondary franchise accents. The second side uses a lighter team tint for contrast, following the desktop reference layout.
+
+The Game review selector updates the whole review's franchise theme, including weekly cards, expandable headers, factor metrics, offensive leaders and supporting tables. Win/loss and helpful/harmful colors remain semantic indicators.

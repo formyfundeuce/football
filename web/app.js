@@ -42,6 +42,7 @@ function renderLog(ids){
 function renderTeamLog(){
  for(const [i,side]of ['A','B'].entries())$('logTeam').options[i].textContent=teams[$('team'+side).value]||'Choose a team';
  const team=$($('logTeam').value==='b'?'teamB':'teamA').value,metric=$('teamLogMetric').value||'all',openKeys=new Set([...$('logs').querySelectorAll('details[open]')].map(el=>el.dataset.key));
+ $('teamPerformance').style.cssText=teamThemeStyle(team);$('teamPerformance').dataset.brandTeam=team;
  if(!schedule){$('logs').innerHTML='<tr><td colspan="4">Team results will appear when the schedule loads.</td></tr>';return}
  const reports=teamWeeklyReports(data,schedule.games,team,$('window').value,metric);
  $('logs').innerHTML=reports.map(report=>{
